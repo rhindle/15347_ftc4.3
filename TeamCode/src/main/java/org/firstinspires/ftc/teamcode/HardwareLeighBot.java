@@ -94,6 +94,9 @@ public class HardwareLeighBot
     public static final double     COUNTS_PER_INCH         = (COUNTS_PER_MOTOR_REV * DRIVE_GEAR_REDUCTION) /
             (WHEEL_DIAMETER_INCHES * 3.1415);
 
+    public static final double     BOOM_LENGTH = 13.25;
+    public static final double     STICK_LENGTH = 15.125;
+
 //    public static final double ARM_UP_POWER    =  0.45 ;
 //    public static final double ARM_DOWN_POWER  = -0.45 ;
 
