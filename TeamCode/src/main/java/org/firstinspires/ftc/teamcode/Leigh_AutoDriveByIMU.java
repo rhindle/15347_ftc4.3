@@ -135,8 +135,8 @@ public class Leigh_AutoDriveByIMU extends LinearOpMode {
 
         // Retrieve and initialize the IMU. We expect the IMU to be attached to an I2C port
         // on a Core Device Interface Module, configured to be a sensor of type "AdaFruit IMU",
-        // and named "imu".
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        // and named "sensorIMU".
+        imu = hardwareMap.get(BNO055IMU.class, "sensorIMU");
         imu.initialize(parameters);
 
         // Ensure the robot it stationary, then reset the encoders and calibrate the gyro.

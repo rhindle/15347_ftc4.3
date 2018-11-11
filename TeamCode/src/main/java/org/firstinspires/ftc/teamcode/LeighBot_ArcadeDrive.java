@@ -8,10 +8,7 @@ package org.firstinspires.ftc.teamcode;
 
         import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
         import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-        import com.qualcomm.robotcore.hardware.DcMotor;
         import com.qualcomm.robotcore.util.Range;
-
-import org.firstinspires.ftc.teamcode.HardwareLeighBot;
 
 @TeleOp(name="LK Proportional Arcade", group="Test")
 //@Disabled
@@ -73,10 +70,10 @@ public class LeighBot_ArcadeDrive extends LinearOpMode
                 rightPower = rightPower / 2;
             }
 
-//            robot.leftDrive.setPower(Range.clip(leftPower, -1.0, 1.0));
-//            robot.rightDrive.setPower(Range.clip(rightPower, -1.0, 1.0));
-            robot.leftDrive.setPower(leftPower);
-            robot.rightDrive.setPower(rightPower);
+//            robot.motorLeft.setPower(Range.clip(powerLeft, -1.0, 1.0));
+//            robot.motorRight.setPower(Range.clip(powerRight, -1.0, 1.0));
+            robot.motorLeft.setPower(leftPower);
+            robot.motorRight.setPower(rightPower);
 
             telemetry.addData("Mode", "running");
             telemetry.addData("stick", "  y=" + yValue + "  x=" + xValue);

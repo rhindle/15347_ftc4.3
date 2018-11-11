@@ -64,7 +64,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
  *   otherwise you would use: PushbotAutoDriveByTime;
  *
  *  This code ALSO requires that you have a Bosch BNO055IMU (included in Rev Expandion Hub)
- *  with the name "imu"
+ *  with the name "sensorIMU"
  *   otherwise you would use: PushbotAutoDriveByEncoder;
  *
  *  This code requires that the drive Motors have been configured such that a positive
@@ -132,8 +132,8 @@ public class PushbotAutoDriveByIMU_Linear extends LinearOpMode {
 
         // Retrieve and initialize the IMU. We expect the IMU to be attached to an I2C port
         // on a Core Device Interface Module, configured to be a sensor of type "AdaFruit IMU",
-        // and named "imu".
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        // and named "sensorIMU".
+        imu = hardwareMap.get(BNO055IMU.class, "sensorIMU");
         imu.initialize(parameters);
 
         // Ensure the robot it stationary, then reset the encoders and calibrate the gyro.
@@ -157,8 +157,8 @@ public class PushbotAutoDriveByIMU_Linear extends LinearOpMode {
         robot.rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // LK: The following help with inaccuracy in my test robot; not present in original gyro code
-//        robot.leftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-//        robot.rightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        robot.motorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//        robot.motorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Wait for the game to start (Display Gyro value), and reset gyro before we move..
         while (!isStarted()) {

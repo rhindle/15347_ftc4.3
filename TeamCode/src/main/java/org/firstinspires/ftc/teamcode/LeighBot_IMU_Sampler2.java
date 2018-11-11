@@ -67,7 +67,7 @@ import java.util.Locale;
  *   otherwise you would use: PushbotAutoDriveByTime;
  *
  *  This code ALSO requires that you have a Bosch BNO055IMU (included in Rev Expandion Hub)
- *  with the name "imu"
+ *  with the name "sensorIMU"
  *   otherwise you would use: PushbotAutoDriveByEncoder;
  *
  *  This code requires that the drive Motors have been configured such that a positive
@@ -94,7 +94,7 @@ public class LeighBot_IMU_Sampler2 extends LinearOpMode {
 
     /* Declare OpMode members. */
     HardwareLeighBot         robot   = new HardwareLeighBot();   // Use a Pushbot's hardware
-//    BNO055IMU               imu;                               // The IMU sensor object
+//    BNO055IMU               sensorIMU;                               // The IMU sensor object
 //
 //    static final double     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: TETRIX Motor Encoder
 //    static final double     DRIVE_GEAR_REDUCTION    = 2.0 ;     // This is < 1.0 if geared UP
@@ -152,20 +152,20 @@ public class LeighBot_IMU_Sampler2 extends LinearOpMode {
 
         // Retrieve and initialize the IMU. We expect the IMU to be attached to an I2C port
         // on a Core Device Interface Module, configured to be a sensor of type "AdaFruit IMU",
-        // and named "imu".
-//        imu = hardwareMap.get(BNO055IMU.class, "imu");
-//        imu.initialize(parameters);
+        // and named "sensorIMU".
+//        sensorIMU = hardwareMap.get(BNO055IMU.class, "sensorIMU");
+//        sensorIMU.initialize(parameters);
 
         // Ensure the robot it stationary, then reset the encoders and calibrate the gyro.
-        robot.leftDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        robot.rightDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.motorLeft.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.motorRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         // Send telemetry message to alert driver that we are calibrating;
         telemetry.addData(">", "Calibrating Gyro");    //
         telemetry.update();
 
         // make sure the gyro is calibrated before continuing
-        while (!isStopRequested() && !robot.imu.isGyroCalibrated())  {
+        while (!isStopRequested() && !robot.sensorIMU.isGyroCalibrated())  {
             sleep(50);
             idle();
         }
@@ -173,16 +173,16 @@ public class LeighBot_IMU_Sampler2 extends LinearOpMode {
         telemetry.addData(">", "Robot Ready.");    //
         telemetry.update();
 
-        robot.leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        robot.rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.motorLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        robot.motorRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // LK: The following help with inaccuracy in my test robot; not present in original gyro code
-        robot.leftDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        robot.rightDrive.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        robot.motorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        robot.motorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Wait for the game to start (Display Gyro value), and reset gyro before we move..
         while (!isStarted()) {
-            angles = robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+            angles = robot.sensorIMU.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
             telemetry.addData(">", "Robot Heading = %.1f", angles.firstAngle);
             telemetry.update();
             sleep(100);
@@ -195,7 +195,7 @@ public class LeighBot_IMU_Sampler2 extends LinearOpMode {
         gyroDrive(DRIVE_SPEED, -14, 90);  // was 9, but I measured wrong!
 //        sleep(5000);
 
-        robot.samplerArm.setPosition(robot.SAMPLER_READ);
+        robot.servoSampler.setPosition(robot.SAMPLER_READ);
 
 //        while (opModeIsActive()) {
 //            // convert the RGB values to HSV values.
@@ -234,17 +234,17 @@ public class LeighBot_IMU_Sampler2 extends LinearOpMode {
 //           idle();
 //       }
 
-        //robot.samplerArm.setPosition(robot.SAMPLER_UP);
+        //robot.servoSampler.setPosition(robot.SAMPLER_UP);
         testForMinerals = true;
         testForMineralsCounter = 0;
         exitFlag = false;
-        saveRightPos = robot.rightDrive.getCurrentPosition();
+        saveRightPos = robot.motorRight.getCurrentPosition();
 //        moveCounts = (int)(distance * robot.COUNTS_PER_INCH);
-//        newLeftTarget = robot.leftDrive.getCurrentPosition() + moveCounts;
-//        newRightTarget = robot.rightDrive.getCurrentPosition() + moveCounts;
+//        newLeftTarget = robot.motorLeft.getCurrentPosition() + moveCounts;
+//        newRightTarget = robot.motorRight.getCurrentPosition() + moveCounts;
         // 26 inches at 0 deg
 
-        robot.samplerArm.setPosition(robot.SAMPLER_READ);
+        robot.servoSampler.setPosition(robot.SAMPLER_READ);
         sleep(100);
 
         sampleHeading=89.0; //90.0;  //90 in auto, 0 when testing just that part.
@@ -254,16 +254,16 @@ public class LeighBot_IMU_Sampler2 extends LinearOpMode {
         if (exitFlag) {
             exitFlag = false;
             gyroDrive(DRIVE_SPEED*.75, -4, sampleHeading);  //0.15
-            robot.samplerArm.setPosition(robot.SAMPLER_PUSH);
+            robot.servoSampler.setPosition(robot.SAMPLER_PUSH);
             gyroDrive(DRIVE_SPEED, 6, sampleHeading);  //0.2
-            robot.samplerArm.setPosition(robot.SAMPLER_UP);
-            netMovement=(robot.rightDrive.getCurrentPosition()-saveRightPos)/robot.COUNTS_PER_INCH;
+            robot.servoSampler.setPosition(robot.SAMPLER_UP);
+            netMovement=(robot.motorRight.getCurrentPosition()-saveRightPos)/robot.COUNTS_PER_INCH;
             telemetry.addData("Distance", "%2.1f", netMovement);
             telemetry.update();
             gyroDrive(DRIVE_SPEED, 40.0-netMovement, sampleHeading);  //0.2
         }
 
-        robot.samplerArm.setPosition(robot.SAMPLER_UP);  // if we missed the mineral raise the arm
+        robot.servoSampler.setPosition(robot.SAMPLER_UP);  // if we missed the mineral raise the arm
         //sleep(2000);
 
         gyroTurn( 0.25,  120);
@@ -399,24 +399,24 @@ public class LeighBot_IMU_Sampler2 extends LinearOpMode {
 
             // Determine new target position, and pass to motor controller
             moveCounts = (int)(distance * robot.COUNTS_PER_INCH);
-            newLeftTarget = robot.leftDrive.getCurrentPosition() + moveCounts;
-            newRightTarget = robot.rightDrive.getCurrentPosition() + moveCounts;
+            newLeftTarget = robot.motorLeft.getCurrentPosition() + moveCounts;
+            newRightTarget = robot.motorRight.getCurrentPosition() + moveCounts;
 
             // Set Target and Turn On RUN_TO_POSITION
-            robot.leftDrive.setTargetPosition(newLeftTarget);
-            robot.rightDrive.setTargetPosition(newRightTarget);
+            robot.motorLeft.setTargetPosition(newLeftTarget);
+            robot.motorRight.setTargetPosition(newRightTarget);
 
-            robot.leftDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            robot.rightDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            robot.motorLeft.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            robot.motorRight.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
             // start motion.
             speed = Range.clip(Math.abs(speed), 0.0, 1.0);
-            robot.leftDrive.setPower(speed);
-            robot.rightDrive.setPower(speed);
+            robot.motorLeft.setPower(speed);
+            robot.motorRight.setPower(speed);
 
             // keep looping while we are still active, and BOTH motors are running.
             while (opModeIsActive() && (!exitFlag) &&
-                    (robot.leftDrive.isBusy() && robot.rightDrive.isBusy())) {
+                    (robot.motorLeft.isBusy() && robot.motorRight.isBusy())) {
 
                 if (testForMinerals) {
                     exitFlag=findMineral();
@@ -441,25 +441,25 @@ public class LeighBot_IMU_Sampler2 extends LinearOpMode {
                     rightSpeed /= max;
                 }
 
-                robot.leftDrive.setPower(leftSpeed);
-                robot.rightDrive.setPower(rightSpeed);
+                robot.motorLeft.setPower(leftSpeed);
+                robot.motorRight.setPower(rightSpeed);
 
                 // Display drive status for the driver.
                 telemetry.addData("Err/St",  "%5.1f/%5.1f",  error, steer);
                 telemetry.addData("Target",  "%7d:%7d",      newLeftTarget,  newRightTarget);
-                telemetry.addData("Actual",  "%7d:%7d",      robot.leftDrive.getCurrentPosition(),
-                        robot.rightDrive.getCurrentPosition());
+                telemetry.addData("Actual",  "%7d:%7d",      robot.motorLeft.getCurrentPosition(),
+                        robot.motorRight.getCurrentPosition());
                 telemetry.addData("Speed",   "%5.2f:%5.2f",  leftSpeed, rightSpeed);
                 telemetry.update();
             }
 
             // Stop all motion;
-            robot.leftDrive.setPower(0);
-            robot.rightDrive.setPower(0);
+            robot.motorLeft.setPower(0);
+            robot.motorRight.setPower(0);
 
             // Turn off RUN_TO_POSITION
-            robot.leftDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-            robot.rightDrive.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            robot.motorLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            robot.motorRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
     }
 
@@ -506,8 +506,8 @@ public class LeighBot_IMU_Sampler2 extends LinearOpMode {
         }
 
         // Stop all motion;
-        robot.leftDrive.setPower(0);
-        robot.rightDrive.setPower(0);
+        robot.motorLeft.setPower(0);
+        robot.motorRight.setPower(0);
     }
 
     /**
@@ -543,8 +543,8 @@ public class LeighBot_IMU_Sampler2 extends LinearOpMode {
         }
 
         // Send desired speeds to motors.
-        robot.leftDrive.setPower(leftSpeed);
-        robot.rightDrive.setPower(rightSpeed);
+        robot.motorLeft.setPower(leftSpeed);
+        robot.motorRight.setPower(rightSpeed);
 
         // Display it for the driver.
         telemetry.addData("Target", "%5.2f", angle);
@@ -565,7 +565,7 @@ public class LeighBot_IMU_Sampler2 extends LinearOpMode {
         double robotError;
 
         // calculate error in -179 to +180 range  (
-        angles = robot.imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        angles = robot.sensorIMU.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
         robotError = targetAngle - angles.firstAngle;
         while (robotError > 180)  robotError -= 360;
         while (robotError <= -180) robotError += 360;

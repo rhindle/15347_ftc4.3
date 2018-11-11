@@ -58,15 +58,15 @@ public class LeighTestAutoIMU extends LinearOpMode
 
         // Retrieve and initialize the IMU. We expect the IMU to be attached to an I2C port
         // on a Core Device Interface Module, configured to be a sensor of type "AdaFruit IMU",
-        // and named "imu".
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        // and named "sensorIMU".
+        imu = hardwareMap.get(BNO055IMU.class, "sensorIMU");
 
         imu.initialize(parameters);
 
         telemetry.addData("Mode", "calibrating...");
         telemetry.update();
 
-        // make sure the imu gyro is calibrated before continuing.
+        // make sure the sensorIMU gyro is calibrated before continuing.
         while (!isStopRequested() && !imu.isGyroCalibrated())
         {
             sleep(50);
@@ -74,7 +74,7 @@ public class LeighTestAutoIMU extends LinearOpMode
         }
 
         telemetry.addData("Mode", "waiting for start");
-        telemetry.addData("imu calib status", imu.getCalibrationStatus().toString());
+        telemetry.addData("sensorIMU calib status", imu.getCalibrationStatus().toString());
         telemetry.update();
 
         // wait for start button.
@@ -135,7 +135,7 @@ public class LeighTestAutoIMU extends LinearOpMode
     // LK - I moved this to a separate function so it would work when rotating
     private void doTelemetry()
     {
-        telemetry.addData("1 imu heading", lastAngles.firstAngle);
+        telemetry.addData("1 sensorIMU heading", lastAngles.firstAngle);
         telemetry.addData("2 global heading", globalAngle);
         telemetry.addData("3 correction", correction);
 //        telemetry.setAutoClear(false);   // +LK, and moved out of loop
@@ -160,7 +160,7 @@ public class LeighTestAutoIMU extends LinearOpMode
     private double getAngle()
     {
         // We experimentally determined the Z axis is the axis we want to use for heading angle.
-        // We have to process the angle because the imu works in euler angles so the Z axis is
+        // We have to process the angle because the sensorIMU works in euler angles so the Z axis is
         // returned as 0 to +180 or 0 to -180 rolling back to -179 or +179 when rotation passes
         // 180 degrees. We detect this transition and track the total cumulative angle of rotation.
 
@@ -218,7 +218,7 @@ public class LeighTestAutoIMU extends LinearOpMode
     {
         double  leftPower, rightPower;
 
-        // restart imu movement tracking.
+        // restart sensorIMU movement tracking.
         resetAngle();
 
         // getAngle() returns + when rotating counter clockwise (left) and - when rotating

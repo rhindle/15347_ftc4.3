@@ -32,11 +32,11 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.hardware.bosch.BNO055IMU;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.TouchSensor;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 //import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
@@ -63,21 +63,22 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 public class HardwareLeighBot
 {
     /* Public OpMode members. */
-    public DcMotor        leftDrive      = null;
-    public DcMotor        rightDrive     = null;
-    public DcMotor        boomDrive      = null;
+    public DcMotor        motorLeft      = null;
+    public DcMotor        motorRight     = null;
+    public DcMotor        motorBoom      = null;
+    public DcMotor        motorStick     = null;
 
 
 //    public DcMotor  leftArm     = null;
 //    public Servo    leftClaw    = null;
 //    public Servo    rightClaw   = null;
-    public Servo          samplerArm     = null;
+    public Servo          servoSampler   = null;
 
     public ColorSensor    sensorColor    = null;
     public DistanceSensor sensorDistance = null;
-    public DigitalChannel sensorBoom      = null;
+    public DigitalChannel sensorBoomLimit = null;
 
-    public BNO055IMU      imu            = null;
+    public BNO055IMU      sensorIMU      = null;
 
 //    public Orientation    angles;
 
@@ -111,25 +112,29 @@ public class HardwareLeighBot
         hwMap = ahwMap;
 
         // Define and Initialize Motors
-        leftDrive  = hwMap.get(DcMotor.class, "motorLeft");
-        rightDrive = hwMap.get(DcMotor.class, "motorRight");
-        boomDrive = hwMap.get(DcMotor.class, "motorBoom");
+        motorLeft = hwMap.get(DcMotor.class, "motorLeft");
+        motorRight = hwMap.get(DcMotor.class, "motorRight");
+        motorBoom = hwMap.get(DcMotor.class, "motorBoom");
+        motorStick = hwMap.get(DcMotor.class, "motorStick");
 //        leftArm    = hwMap.get(DcMotor.class, "left_arm");
-        leftDrive.setDirection(DcMotor.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
-        rightDrive.setDirection(DcMotor.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
-        boomDrive.setDirection(DcMotor.Direction.REVERSE); // Set to REVERSE if using AndyMark motors
+        motorLeft.setDirection(DcMotor.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
+        motorRight.setDirection(DcMotor.Direction.REVERSE);// Set to FORWARD if using AndyMark motors
+        motorBoom.setDirection(DcMotor.Direction.REVERSE); // Set to REVERSE if using AndyMark motors
+        motorStick.setDirection(DcMotor.Direction.FORWARD); // Set to REVERSE if using AndyMark motors
 
         // Set all motors to zero power
-        leftDrive.setPower(0);
-        rightDrive.setPower(0);
-        boomDrive.setPower(0);
+        motorLeft.setPower(0);
+        motorRight.setPower(0);
+        motorBoom.setPower(0);
+        motorStick.setPower(0);
 //        leftArm.setPower(0);
 
         // Set all motors to run without encoders.
         // May want to use RUN_USING_ENCODERS if encoders are installed.
-        leftDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        rightDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        boomDrive.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorLeft.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorRight.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorBoom.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        motorStick.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 //        leftArm.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
 //        // Define and initialize ALL installed servos.
@@ -137,22 +142,22 @@ public class HardwareLeighBot
 //        rightClaw = hwMap.get(Servo.class, "right_hand");
 //        leftClaw.setPosition(MID_SERVO);
 //        rightClaw.setPosition(MID_SERVO);
-        samplerArm = hwMap.get(Servo.class,"servoSampler");
-        samplerArm.setPosition(SAMPLER_UP);
+        servoSampler = hwMap.get(Servo.class,"servoSampler");
+        servoSampler.setPosition(SAMPLER_UP);
 
         sensorColor = hwMap.get(ColorSensor.class, "sensorColorRange");
         sensorDistance = hwMap.get(DistanceSensor.class, "sensorColorRange");
 
-        sensorBoom = hwMap.get(DigitalChannel.class, "touchBoom");
-        sensorBoom.setMode(DigitalChannel.Mode.INPUT);
+        sensorBoomLimit = hwMap.get(DigitalChannel.class, "touchBoom");
+        sensorBoomLimit.setMode(DigitalChannel.Mode.INPUT);
 
         // Retrieve and initialize the IMU. We expect the IMU to be attached to an I2C port
         // on a Core Device Interface Module, configured to be a sensor of type "AdaFruit IMU",
-        // and named "imu".
-        imu = hwMap.get(BNO055IMU.class, "imu");
+        // and named "sensorIMU".
+        sensorIMU = hwMap.get(BNO055IMU.class, "sensorIMU");
         BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
         parameters.angleUnit            = BNO055IMU.AngleUnit.DEGREES;
-        imu.initialize(parameters);
+        sensorIMU.initialize(parameters);
     }
  }
 
