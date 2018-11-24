@@ -48,7 +48,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.HardwareLeighBot;
+import org.firstinspires.ftc.teamcode.Hardware_LeighBot;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
@@ -95,7 +95,7 @@ import java.util.Locale;
 public class LeighBot_IMU_Sampler extends LinearOpMode {
 
     /* Declare OpMode members. */
-    HardwareLeighBot         robot   = new HardwareLeighBot();   // Use a Pushbot's hardware
+    Hardware_LeighBot robot   = new Hardware_LeighBot();   // Use a Pushbot's hardware
 //    BNO055IMU               sensorIMU;                               // The IMU sensor object
 //
 //    static final double     COUNTS_PER_MOTOR_REV    = 1440 ;    // eg: TETRIX Motor Encoder

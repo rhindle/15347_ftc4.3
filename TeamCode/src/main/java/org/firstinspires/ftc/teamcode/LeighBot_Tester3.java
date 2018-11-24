@@ -25,7 +25,7 @@ public class LeighBot_Tester3 extends LinearOpMode {
 //    private DistanceSensor sensorColorRange;
 //    private Servo servoTest;
 
-    HardwareLeighBot         robot   = new HardwareLeighBot();
+    Hardware_LeighBot robot   = new Hardware_LeighBot();
     Orientation angles;
     float powerLeft, powerRight, xValue, yValue;
 
@@ -372,8 +372,8 @@ public class LeighBot_Tester3 extends LinearOpMode {
     public double[] xyAngles (double x, double y) {
 //https://www.geeksforgeeks.org/returning-multiple-values-in-java/
 //https://appliedgo.net/roboticarm/
-        double len1 = HardwareLeighBot.BOOM_LENGTH;
-        double len2 = HardwareLeighBot.STICK_LENGTH;
+        double len1 = Hardware_LeighBot.BOOM_LENGTH;
+        double len2 = Hardware_LeighBot.STICK_LENGTH;
         double dist = xyDistance(x,y);
         double D1 = Math.atan2(y,x);
         double D2 = lawOfCosines(dist, len1, len2);

@@ -24,7 +24,7 @@ public class LeighBot_Tester extends LinearOpMode {
 //    private DistanceSensor sensorColorRange;
 //    private Servo servoTest;
 
-    HardwareLeighBot         robot   = new HardwareLeighBot();
+    Hardware_LeighBot robot   = new Hardware_LeighBot();
     Orientation angles;
 
     @Override

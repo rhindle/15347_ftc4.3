@@ -18,7 +18,7 @@ public class LeighBot_ArcadeDrive extends LinearOpMode
     float   leftPower, rightPower, xValue, yValue, rValue, xxValue;
     float  leftTest, rightTest;
 
-    HardwareLeighBot robot   = new HardwareLeighBot();
+    Hardware_LeighBot robot   = new Hardware_LeighBot();
 
     // called when init button is  pressed.
     @Override
