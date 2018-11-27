@@ -146,8 +146,15 @@ public class TestBot_01 extends LinearOpMode {
             // X button will make the motor full speed, otherwise only 25%
             // Right Stick adjusts target servo position
             // B button panic stops all motors (should no longer be necessary)
+            // Start button sets servo to center position (to stop if in continuous mode)
+            // !!! Can't seem to back the "back" button work ???
             tgtPower = -gamepad1.left_stick_y * (gamepad1.x ? 1 : 0.25);
-            tgtPosition = Math.max(0, Math.min(1, tgtPosition - gamepad1.right_stick_y * .025));  //enc = Math.max(20, Math.min(enc, 1180));
+            if (!gamepad1.start) {
+                tgtPosition = Math.max(0, Math.min(1, tgtPosition - gamepad1.right_stick_y * .025));
+            } else {
+                // added "stop" function in case the servo is in continuous mode
+                tgtPosition = 0.5;
+            }
             if (gamepad1.b) {
                 stopAllMotors();
                 tgtPower=0;
