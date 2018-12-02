@@ -1,23 +1,25 @@
-package org.firstinspires.ftc.teamcode;
+package Boneyard;
 
 import android.graphics.Color;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
 import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+import org.firstinspires.ftc.teamcode.Hardware_LeighBot;
 
 import java.util.Locale;
 
 
-@TeleOp (name="Leighbot: Testing", group="Test")
+@TeleOp (name="Leighbot: Testing (A)", group="Test")
 //@Disabled
-public class LeighBot_Tester extends LinearOpMode {
+public class LeighBot_Tester2 extends LinearOpMode {
 //    private Gyroscope sensorIMU;
 //    private DcMotor motorTest;
 //    private DigitalChannel digitalTouch;
@@ -26,6 +28,7 @@ public class LeighBot_Tester extends LinearOpMode {
 
     Hardware_LeighBot robot   = new Hardware_LeighBot();
     Orientation angles;
+    float powerLeft, powerRight, xValue, yValue;
 
     @Override
     public void runOpMode() {
@@ -45,6 +48,7 @@ public class LeighBot_Tester extends LinearOpMode {
         robot.motorRight.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         robot.motorBoom.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.motorStick.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
         // Send telemetry message to alert driver that we are calibrating;
         telemetry.addData(">", "Calibrating Gyro");    //
@@ -62,11 +66,14 @@ public class LeighBot_Tester extends LinearOpMode {
         robot.motorLeft.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         robot.motorRight.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         robot.motorBoom.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //robot.motorStick.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        robot.motorStick.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // LK: The following help with inaccuracy in my test robot; not present in original gyro code
 //        robot.motorLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 //        robot.motorRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         robot.motorBoom.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        robot.motorStick.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Wait for the game to start (Display Gyro value), and reset gyro before we move..
         while (!isStarted()) {
@@ -82,6 +89,7 @@ public class LeighBot_Tester extends LinearOpMode {
         double tgtPowerLeft = 0;
         double tgtPowerRight = 0;
         double tgtPowerBoom = 0;
+        double tgtPowerStick = 0;
 
         double tgtSampler = 0.5;
 
@@ -95,6 +103,8 @@ public class LeighBot_Tester extends LinearOpMode {
 
         // run until the end of the match (driver presses STOP)
         while (opModeIsActive()) {
+
+            /* Color Sensor Section */
 
             Color.RGBToHSV((int) (robot.sensorColor.red() * SCALE_FACTOR),
                     (int) (robot.sensorColor.green() * SCALE_FACTOR),
@@ -115,26 +125,38 @@ public class LeighBot_Tester extends LinearOpMode {
                 telemetry.addData(">", "no match");
             }
 
+            /* Drive Section */
 
-            tgtPowerLeft = -this.gamepad1.left_stick_y;
-            tgtPowerRight = -this.gamepad1.right_stick_y;
-            tgtPowerBoom = this.gamepad1.right_trigger - this.gamepad1.left_trigger;
+            yValue = -gamepad1.left_stick_y;   // throttle
+            xValue = -gamepad1.right_stick_x;  // steer
 
+            if (!gamepad1.right_bumper) {
+                if (yValue < 0) {              // mimic car steering wrt reversing
+                    xValue = -xValue;
+                }
+                xValue = xValue * Math.abs(yValue);  // make turn proportional to speed
+            }
 
-            robot.motorLeft.setPower(tgtPowerLeft);
-            robot.motorRight.setPower(tgtPowerRight);
-//
-//            if (robot.sensorBoomLimit.getState() == true && robot.motorBoom.getCurrentPosition()>20 && tgtPowerBoom < 0) {
-//                robot.motorBoom.setPower(tgtPowerBoom);
-//            } else if (robot.sensorBoomLimit.getState() == true && robot.motorBoom.getCurrentPosition()<1150 && tgtPowerBoom > 0) {
-//                robot.motorBoom.setPower(tgtPowerBoom);
-//            } else {
-//                robot.motorBoom.setPower(0);
-//            }
-//            if (robot.sensorBoomLimit.getState() == false) {
-//                //robot.motorBoom.setPower(0);
-//                initBoom();
-//            }
+            powerLeft =  yValue - xValue;
+            powerRight = yValue + xValue;
+
+            powerLeft = Range.clip(powerLeft,-1.0f,1.0f);
+            powerRight = Range.clip(powerRight, -1.0f, 1.0f);
+
+            if (!gamepad1.left_bumper) {   // left bumper is full speed, otherwise half.
+                powerLeft =  powerLeft / 2;
+                powerRight = powerRight / 2;
+            }
+
+            robot.motorLeft.setPower(powerLeft);
+            robot.motorRight.setPower(powerRight);
+
+            /*  Boom Section */
+            //tgtPowerBoom = this.gamepad1.right_trigger - this.gamepad1.left_trigger;
+            tgtPowerBoom = -this.gamepad2.left_stick_y;
+            tgtPowerStick = -this.gamepad2.right_stick_y;
+
+            robot.motorStick.setPower(tgtPowerStick);
 
             if (robot.sensorBoomLimit.getState() == true && tgtPowerBoom < 0) {
                 robot.motorBoom.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
@@ -158,17 +180,16 @@ public class LeighBot_Tester extends LinearOpMode {
                 initBoom();
             }
 
-            telemetry.addData("Target Power L", tgtPowerLeft);
-//            telemetry.addData("Left Motor Power", leftMotor.getPower());
-//            telemetry.addData("Status", "Running");
-            telemetry.addData("Target Power R", tgtPowerRight);
-//            telemetry.addData("Right Motor Power", rightMotor.getPower());
-//            telemetry.addData("Status", "Running");
-//            telemetry.update();
-            telemetry.addData("Target Power B", tgtPowerBoom);
-            telemetry.addData("Boom encoder",robot.motorBoom.getCurrentPosition());
 
-            // check to see if we nned to move the servo.
+
+            telemetry.addData("stick", "  y=" + yValue + "  x=" + xValue);
+            telemetry.addData("power", "  left=" + powerLeft + "  right=" + powerRight);
+            telemetry.addData("Boom power", tgtPowerBoom);
+            telemetry.addData("Boom encoder",robot.motorBoom.getCurrentPosition());
+            telemetry.addData("Stick power", tgtPowerStick);
+            telemetry.addData("Stick encoder",robot.motorStick.getCurrentPosition());
+
+            // check to see if we need to move the servo.
             if (gamepad1.y) {
                 // move to min pos
                 tgtSampler += .005;
@@ -184,9 +205,14 @@ public class LeighBot_Tester extends LinearOpMode {
                 robot.servoSampler.setPosition(tgtSampler);
             }
 
-            if (gamepad1.x) {
+            if (gamepad2.x) {
                 initBoom();
             }
+
+            if (gamepad2.b) {
+                initStick();
+            }
+
             // is switch pressed?
 //            if (digitalTouch.getState() == false) {
 //                // button is pressed
@@ -223,5 +249,10 @@ public class LeighBot_Tester extends LinearOpMode {
         robot.motorBoom.setPower(0.6);
         sleep(500);
         robot.motorBoom.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+    }
+
+    public void initStick() {
+        robot.motorStick.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        robot.motorStick.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 }

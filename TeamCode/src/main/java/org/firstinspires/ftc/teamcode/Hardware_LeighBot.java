@@ -73,6 +73,7 @@ public class Hardware_LeighBot
 //    public Servo    leftClaw    = null;
 //    public Servo    rightClaw   = null;
     public Servo          servoSampler   = null;
+    public Servo          servoWrist    = null;
 
     public ColorSensor    sensorColor    = null;
     public DistanceSensor sensorDistance = null;
@@ -147,6 +148,9 @@ public class Hardware_LeighBot
 //        rightClaw.setPosition(MID_SERVO);
         servoSampler = hwMap.get(Servo.class,"servoSampler");
         servoSampler.setPosition(SAMPLER_UP);
+
+        servoWrist = hwMap.get(Servo.class, "servoWrist");
+        servoWrist.setPosition(0.01);
 
         sensorColor = hwMap.get(ColorSensor.class, "sensorColorRange");
         sensorDistance = hwMap.get(DistanceSensor.class, "sensorColorRange");

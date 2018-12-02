@@ -16,9 +16,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import java.util.Locale;
 
 
-@TeleOp (name="Leighbot: Testing (A)", group="Test")
+@TeleOp (name="Leighbot: Testing (C)", group="Test")
 //@Disabled
-public class LeighBot_Tester2 extends LinearOpMode {
+public class LeighBot_Tester4 extends LinearOpMode {
 //    private Gyroscope sensorIMU;
 //    private DcMotor motorTest;
 //    private DigitalChannel digitalTouch;
@@ -28,6 +28,10 @@ public class LeighBot_Tester2 extends LinearOpMode {
     Hardware_LeighBot robot   = new Hardware_LeighBot();
     Orientation angles;
     float powerLeft, powerRight, xValue, yValue;
+
+    static double enc2deg = 590.0/90.0;  // 590 encoder pulses for 90 degree, both boom and stick
+
+
 
     @Override
     public void runOpMode() {
@@ -89,6 +93,14 @@ public class LeighBot_Tester2 extends LinearOpMode {
         double tgtPowerRight = 0;
         double tgtPowerBoom = 0;
         double tgtPowerStick = 0;
+        double wristY = 5;
+        double wristX = 5;
+        boolean isStickBusy = false;
+        boolean isBoomBusy = false;
+        boolean isNewTarget = false;
+        double[] tgtAngles;
+
+        //double enc2deg = 590.0/90.0;  // 590 encoder pulses for 90 degree, both boom and stick
 
         double tgtSampler = 0.5;
 
@@ -155,38 +167,132 @@ public class LeighBot_Tester2 extends LinearOpMode {
             tgtPowerBoom = -this.gamepad2.left_stick_y;
             tgtPowerStick = -this.gamepad2.right_stick_y;
 
-            robot.motorStick.setPower(tgtPowerStick);
-
-            if (robot.sensorBoomLimit.getState() == true && tgtPowerBoom < 0) {
-                robot.motorBoom.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-                robot.motorBoom.setTargetPosition(60);
-                robot.motorBoom.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                robot.motorBoom.setPower(Math.abs(tgtPowerBoom));
-            } else if (robot.sensorBoomLimit.getState() == true && tgtPowerBoom > 0) {
-                robot.motorBoom.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-                robot.motorBoom.setTargetPosition(1150);
-                robot.motorBoom.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                robot.motorBoom.setPower(Math.abs(tgtPowerBoom));
+            if (!isStickBusy) {
+                robot.motorStick.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                robot.motorStick.setPower(tgtPowerStick);
             } else {
-                //robot.motorBoom.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                if (robot.motorBoom.getCurrentPosition() < 100 || robot.motorBoom.getCurrentPosition() > 1100) {
-                    robot.motorBoom.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                if (!robot.motorStick.isBusy()) {
+                    isStickBusy = false;
                 }
-                robot.motorBoom.setPower(0);
+            }
+
+            if (!isBoomBusy) {
+                if (robot.sensorBoomLimit.getState() == true && tgtPowerBoom < 0) {
+                    robot.motorBoom.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);  //FLOAT
+                    robot.motorBoom.setTargetPosition(60);
+                    robot.motorBoom.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    robot.motorBoom.setPower(Math.abs(tgtPowerBoom));
+                } else if (robot.sensorBoomLimit.getState() == true && tgtPowerBoom > 0) {
+                    robot.motorBoom.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);   //FLOAT
+                    robot.motorBoom.setTargetPosition(1150);
+                    robot.motorBoom.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                    robot.motorBoom.setPower(Math.abs(tgtPowerBoom));
+                } else {
+                    //robot.motorBoom.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                    if (robot.motorBoom.getCurrentPosition() < 100 || robot.motorBoom.getCurrentPosition() > 1100) {
+                        robot.motorBoom.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                    }
+                    robot.motorBoom.setPower(0);
+                }
+            } else {
+                if (!robot.motorBoom.isBusy()) {
+                    isBoomBusy = false;
+                }
             }
             if (robot.sensorBoomLimit.getState() == false) {
                 //robot.motorBoom.setPower(0);
                 initBoom();
             }
 
+            isNewTarget = false;
+            if (gamepad2.dpad_up) {
+                wristY = wristY + .5;
+                isNewTarget = true;
+            }
+            if (gamepad2.dpad_down) {
+                wristY = wristY - .5;
+                isNewTarget = true;
+            }
+            if (gamepad2.dpad_left) {
+                wristX = wristX - .5;
+                isNewTarget = true;
+            }
+            if (gamepad2.dpad_right) {
+                wristX = wristX + .5;
+                isNewTarget = true;
+            }
+            wristY = Range.clip(wristY,-3,10);
+            wristX = Range.clip(wristX,5,28);
+            tgtAngles = xyAngles(wristX,wristY);
 
 
-            telemetry.addData("stick", "  y=" + yValue + "  x=" + xValue);
-            telemetry.addData("power", "  left=" + powerLeft + "  right=" + powerRight);
-            telemetry.addData("Boom power", tgtPowerBoom);
-            telemetry.addData("Boom encoder",robot.motorBoom.getCurrentPosition());
-            telemetry.addData("Stick power", tgtPowerStick);
-            telemetry.addData("Stick encoder",robot.motorStick.getCurrentPosition());
+
+            if (gamepad2.left_bumper) {
+                robot.motorBoom.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                robot.motorBoom.setTargetPosition(ang2encBoom(90));
+                robot.motorBoom.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                robot.motorBoom.setPower(0.75);
+                isBoomBusy=true;
+                robot.motorStick.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                robot.motorStick.setTargetPosition(ang2encStick(180));
+                robot.motorStick.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                robot.motorStick.setPower(0.75);
+                isStickBusy=true;
+            }
+            if (gamepad2.right_bumper) {
+                wristY = 0;
+                wristX = 12;
+                isNewTarget = true;
+//                robot.motorBoom.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//                robot.motorBoom.setTargetPosition(ang2encBoom(60)); //60
+//                robot.motorBoom.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//                robot.motorBoom.setPower(0.75);
+//                isBoomBusy=true;
+//                robot.motorStick.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//                robot.motorStick.setTargetPosition(ang2encStick(30));  //30
+//                robot.motorStick.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+//                robot.motorStick.setPower(0.75);
+//                isStickBusy=true;
+            }
+
+            //            if (gamepad2.a) {
+            if (isNewTarget) {
+                robot.motorBoom.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                robot.motorBoom.setTargetPosition(ang2encBoom(tgtAngles[0]));
+                robot.motorBoom.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                robot.motorBoom.setPower(0.75);
+                isBoomBusy=true;
+                robot.motorStick.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                robot.motorStick.setTargetPosition(ang2encStick(tgtAngles[1]));
+                robot.motorStick.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                robot.motorStick.setPower(1);
+                isStickBusy=true;
+            }
+
+            if (gamepad2.y) {
+                robot.motorBoom.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                robot.motorBoom.setTargetPosition(ang2encBoom(180));
+                robot.motorBoom.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                robot.motorBoom.setPower(0.75);
+                isBoomBusy=true;
+                robot.motorStick.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+                robot.motorStick.setTargetPosition(ang2encStick(0));
+                robot.motorStick.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                robot.motorStick.setPower(0.75);
+                isStickBusy=true;
+            }
+
+//            telemetry.addData("Joystick", "  y=" + yValue + "  x=" + xValue);
+            telemetry.addData("DrivePower", "  left=" + powerLeft + "  right=" + powerRight);
+            telemetry.addData("Boom", "  encoder=" + robot.motorBoom.getCurrentPosition() + "  power=" + tgtPowerBoom);
+            telemetry.addData("Stick", "  encoder=" + robot.motorStick.getCurrentPosition() + "  power=" + tgtPowerStick);
+            telemetry.addData("Angles","  Boom=" + Math.round(180-(robot.motorBoom.getCurrentPosition()+20)/enc2deg)+"  Stick="+Math.round((robot.motorStick.getCurrentPosition()+40)/enc2deg));
+            telemetry.addData("Wrist","  x=" + Math.round(wristX*10) + "  y=" + Math.round(wristY*10));
+            telemetry.addData("Angles", "  Boom=" + Math.round(tgtAngles[0]) + "  Stick=" + Math.round(tgtAngles[1]));
+//            telemetry.addData("Boom power", tgtPowerBoom);
+//            telemetry.addData("Boom encoder",robot.motorBoom.getCurrentPosition());
+//            telemetry.addData("Stick power", tgtPowerStick);
+//            telemetry.addData("Stick encoder",robot.motorStick.getCurrentPosition());
 
             // check to see if we need to move the servo.
             if (gamepad1.y) {
@@ -221,6 +327,8 @@ public class LeighBot_Tester2 extends LinearOpMode {
 //                telemetry.addData("Button", "NOT PRESSED");
 //            }
 
+            alignWrist();
+
             telemetry.addData("Target Servo Position", "%.3f", tgtSampler);
             //telemetry.addData(">", "Robot Heading = %.1f", angles.firstAngle);
 //            telemetry.addData("Servo Position", servoTest.getPosition());
@@ -254,4 +362,54 @@ public class LeighBot_Tester2 extends LinearOpMode {
         robot.motorStick.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         robot.motorStick.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
+
+    public double lawOfCosines (double a, double b, double c) {
+        return Math.acos((a*a + b*b - c*c) / (2*a*b));
+    }
+
+    public double xyDistance (double x, double y) {
+        return Math.sqrt(x*x + y*y);
+    }
+
+    public double[] xyAngles (double x, double y) {
+//https://www.geeksforgeeks.org/returning-multiple-values-in-java/
+//https://appliedgo.net/roboticarm/
+        double len1 = Hardware_LeighBot.BOOM_LENGTH;
+        double len2 = Hardware_LeighBot.STICK_LENGTH;
+        double dist = xyDistance(x,y);
+        double D1 = Math.atan2(y,x);
+        double D2 = lawOfCosines(dist, len1, len2);
+        double[] angs = new double[2];
+        angs[0] = Math.toDegrees(D1 + D2);
+        angs[1] = Math.toDegrees(lawOfCosines(len1, len2, dist));
+        return angs;
+    }
+
+    public int ang2encBoom (double ang){
+        //Math.round(180-(robot.motorBoom.getCurrentPosition()+20)/enc2deg)
+        int enc = (int)Math.round((180-ang)*enc2deg-20.0);
+        enc = Math.max(60, Math.min(enc, 1150));
+        return enc;
+    }
+
+    public int ang2encStick (double ang){
+        //Math.round((robot.motorStick.getCurrentPosition()+40)/enc2deg)
+        int enc = (int)Math.round(ang*enc2deg-40.0);
+        enc = Math.max(20, Math.min(enc, 1180));
+//        enc = Math.max(20,enc);
+//        enc = Math.min(1180,enc);
+        return enc;
+    }
+
+    public void alignWrist () {
+        //Boom= Math.round(180-(robot.motorBoom.getCurrentPosition()+20)/enc2deg
+        //Stick=Math.round((robot.motorStick.getCurrentPosition()+40)/enc2deg))
+        double wristAng = (180-(robot.motorBoom.getCurrentPosition()+20)/enc2deg); // boom angle
+        wristAng += ((robot.motorStick.getCurrentPosition()+40)/enc2deg); // add stick angle
+        double wristVal =  (0.725-.01)/180*(wristAng-45) + .01;
+        telemetry.addData("Wrist:", "  Ang=" +  Math.round(wristAng) + "  Value=" + wristVal);
+//        telemetry.addData("Angles", "  Boom=" + Math.round(tgtAngles[0]) + "  Stick=" + Math.round(tgtAngles[1]));
+        robot.servoWrist.setPosition(wristVal);
+    }
+
 }
