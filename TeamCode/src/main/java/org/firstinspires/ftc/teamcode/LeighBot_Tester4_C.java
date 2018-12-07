@@ -16,9 +16,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 import java.util.Locale;
 
 
-@TeleOp (name="Leighbot: Testing (4)", group="Test")
+@TeleOp (name="Leighbot: Testing (4C)", group="Test")
 //@Disabled
-public class LeighBot_Tester4 extends LinearOpMode {
+public class LeighBot_Tester4_C extends LinearOpMode {
 //    private Gyroscope sensorIMU;
 //    private DcMotor motorTest;
 //    private DigitalChannel digitalTouch;
@@ -140,8 +140,8 @@ public class LeighBot_Tester4 extends LinearOpMode {
 
 //            yValue = -gamepad1.left_stick_y;   // throttle
 //            xValue = -gamepad1.right_stick_x;  // steer
-            yValue = -gamepad1.left_stick_y;   // throttle
-            xValue = -gamepad1.right_stick_x;  // steer
+            yValue = -(float)Math.pow(gamepad1.left_stick_y,3);   // throttle
+            xValue = -(float)Math.pow(gamepad1.right_stick_x,3);  // steer
 
             if (!gamepad1.right_bumper) {
                 if (yValue < 0) {              // mimic car steering wrt reversing
